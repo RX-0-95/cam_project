@@ -54,11 +54,16 @@ TfLiteStatus GetImage(tflite::ErrorReporter* error_reporter, int image_width,
   TF_LITE_MICRO_EXECUTION_TIME_BEGIN
   TF_LITE_MICRO_EXECUTION_TIME(error_reporter, capture((uint8_t *)image_data));
 #ifdef SEND_IMAGE_AFTER_CAPTURE
-  TF_LITE_MICRO_EXECUTION_TIME(error_reporter, uart_write_blocking(IMAGE_UART_ID, header, 2));
-  TF_LITE_MICRO_EXECUTION_TIME(error_reporter, uart_write_blocking(IMAGE_UART_ID, (uint8_t *)image_data, kMaxImageSize));
+  //TF_LITE_MICRO_EXECUTION_TIME(error_reporter, uart_write_blocking(IMAGE_UART_ID, header, 2));
+  //TF_LITE_MICRO_EXECUTION_TIME(error_reporter, uart_write_blocking(IMAGE_UART_ID, (uint8_t *)image_data, kMaxImageSize));
 #endif
   for (int i = 0; i < image_width * image_height * channels; ++i) {
     image_data[i] = (uint8_t)image_data[i] - 128;
   }
+  return kTfLiteOk;
+}
+
+TfLiteStatus GetJPEGImageTransfer(tflite::ErrorReporter*error_reporter){
+  //capture image in jpeg format and send from uart port
   return kTfLiteOk;
 }

@@ -2,6 +2,9 @@
 #define _MOTION_DETECTION_H_
 
 #include <stdint.h>
+
+
+
 class MotionDetector{
     public:
         
@@ -14,8 +17,11 @@ class MotionDetector{
                         int8_t* prev_frame_data,
                         int8_t* frame_diff_data);
         int8_t* apply();
-    private:
         int8_t* prev_frame_data;
         int8_t* frame_diff_data;
+    private:
+       
 };
+
+
 #endif //_MOTION_DETECT_H_

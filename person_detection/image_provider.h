@@ -8,4 +8,6 @@
 TfLiteStatus GetImage(tflite::ErrorReporter* error_reporter, int image_width,
                       int image_height, int channels, int8_t* image_data);
 
+TfLiteStatus GetJPEGImageTransfer(tflite::ErrorReporter*error_reporter);
 #endif 
+

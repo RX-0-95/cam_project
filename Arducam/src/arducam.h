@@ -1,8 +1,6 @@
 #ifndef __ARDUCAM_H
 #define __ARDUCAM_H
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,6 +29,16 @@ extern "C" {
 #define PARITY    UART_PARITY_NONE
 #define UART_TX_PIN 0
 #define UART_RX_PIN 1
+
+//=========================Add JPEG support==================//
+// JPEG buffer do not used for cv process, it directly send to 
+// uart after recieve
+
+#ifdef USE_CAM_JPEG
+    #define MAX_JPEG_BUF_SIZE 1024
+    extern int8_t jpeg_buf[MAX_JPEG_BUF_SIZE];
+#endif //USE_CAM_JPEG
+
 
 #ifndef _SENSOR_
 #define _SENSOR_
@@ -98,8 +106,14 @@ int wrSensorRegs8_8(const struct sensor_reg reglist[]);
 void write_reg(uint8_t address, uint8_t value);
 uint8_t read_reg(uint8_t address);
 void capture(uint8_t *data);
-#endif
+
+//========================Modify start========================
+void yuv_capture(uint8_t *data);
+void jpeg_capture_transfer(uint8_t *data,void(*transfer_fn)(uint8_t*,uint32_t));
+
 
 #ifdef __cplusplus
 }
-#endif
+#endif //__cplusplus
+
+#endif //__ARDUCAM_H
