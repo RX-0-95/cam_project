@@ -1,7 +1,5 @@
 
 add_executable(person_detection "")
-
-
 target_include_directories(person_detection
   PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/.
@@ -31,7 +29,8 @@ target_sources(person_detection
   ${CMAKE_CURRENT_LIST_DIR}/detect_config.h
   ${CMAKE_CURRENT_LIST_DIR}/motion_detection.h
   ${CMAKE_CURRENT_LIST_DIR}/motion_detection.cpp
-
+  ${CMAKE_CURRENT_LIST_DIR}/tiny_cv.h
+  ${CMAKE_CURRENT_LIST_DIR}/tiny_cv.cpp
 )
 
 pico_add_extra_outputs(person_detection)

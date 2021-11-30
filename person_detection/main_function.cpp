@@ -6,6 +6,7 @@
 #include "person_detection_model_data.h"
 
 #include "motion_detection.h"
+#include "tiny_cv.h"
 
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
@@ -69,6 +70,13 @@ namespace
     static uint8_t tensor_arena[kTensorArenaSize];
 
     MotionDetector * motion_detector = nullptr;
+
+    //TinyCv related
+    static TinyImage* tg_img = nullptr;
+    static uint32_t pos_pixel_count = 0;
+    static const uint8_t bitmap_threshold = 50;
+
+
 } // namespace
 
 #if defined (SEND_IMAGE_AFTER_CAPTURE)||defined (SEND_IMAGE_AFTER_INFERENCE)
@@ -164,7 +172,10 @@ void setup(){
     static MotionDetector motion_detecto(input->data.int8,kNumRows,kNumCols,
                           prev_frame_data,frame_diff_data);
     motion_detector = &motion_detecto;
-    
+
+    // TinyCv related
+    //static TinyImage tg_im(kNumRows,kNumCols);    
+    //tg_img = &tg_im;
 }
 
 void loop(){
@@ -181,7 +192,15 @@ void loop(){
     TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_START(error_reporter)
 
     // motion detection
-    int8_t* diff_buf = motion_detector->apply();   
+    
+    int8_t* diff_buf = motion_detector->apply();
+    /*
+    pos_pixel_count = bit_map_transfer((uint8_t*)diff_buf,kNumRows,kNumCols,
+                                      tg_img,bitmap_threshold);
+    if (pos_pixel_count >= uint32_t(kNumCols*kNumRows*0.1)){
+      TF_LITE_REPORT_ERROR(error_reporter,"===>Detect Motion!!!\n");
+    }
+    */
 
     uint8_t header[2] = {0x55, 0xAA};
     uart_write_blocking(IMAGE_UART_ID, header, 2);

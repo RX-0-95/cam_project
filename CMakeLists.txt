@@ -377,6 +377,7 @@ target_sources(free_rtos
 
 
 # Add executable. Default name is the project name, version 0.1
+
 add_executable(cam_project cam_project.cpp )
 
 pico_set_program_name(cam_project "cam_project")

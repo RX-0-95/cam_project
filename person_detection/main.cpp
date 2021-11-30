@@ -8,6 +8,7 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
+#include "stdio.h"
 
 #define GPIO_ON 1
 #define GPIO_OFF 0
@@ -28,6 +29,9 @@ int main(int argc, char* argv[]){
     for (;;){
         loop();
     }
+    
+  
+    /*
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN,GPIO_OUT);
     TaskHandle_t gLEDtask = NULL;
@@ -40,8 +44,8 @@ int main(int argc, char* argv[]){
     vTaskStartScheduler();
     
 
-    
     while (true){
         loop();
     }
+    */
 }
