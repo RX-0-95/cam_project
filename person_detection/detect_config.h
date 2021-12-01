@@ -18,6 +18,8 @@
 #define IMAGE_UART_TX_PIN 20
 #define IMAGE_UART_RX_PIN 21
 
-
+// motion detect conifg
+#define BITMAP_THRESHOLD 32
+#define DETECT_PERCENT_THRESHOLD 0.05
 
 #endif

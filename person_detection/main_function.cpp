@@ -74,7 +74,7 @@ namespace
     //TinyCv related
     static TinyImage* tg_img = nullptr;
     static uint32_t pos_pixel_count = 0;
-    static const uint8_t bitmap_threshold = 50;
+    static const uint8_t bitmap_threshold = 32;
 
 
 } // namespace
@@ -124,7 +124,6 @@ void setup_uart() {}
 
 void setup(){
     setup_uart();
-
     // setup logging
     static tflite::MicroErrorReporter micro_error_reporter;
     error_reporter = &micro_error_reporter;
@@ -170,12 +169,13 @@ void setup(){
     static int8_t prev_frame_data[kNumRows*kNumCols];
     static int8_t frame_diff_data[kNumRows*kNumCols];
     static MotionDetector motion_detecto(input->data.int8,kNumRows,kNumCols,
-                          prev_frame_data,frame_diff_data);
+                          prev_frame_data,frame_diff_data,BITMAP_THRESHOLD,
+                          DETECT_PERCENT_THRESHOLD);
     motion_detector = &motion_detecto;
 
     // TinyCv related
-    //static TinyImage tg_im(kNumRows,kNumCols);    
-    //tg_img = &tg_im;
+    static TinyImage tg_im(kNumRows,kNumCols);    
+    tg_img = &tg_im;
 }
 
 void loop(){
@@ -189,22 +189,41 @@ void loop(){
         }
     TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_END(error_reporter,"GetImage")
 
-    TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_START(error_reporter)
 
     // motion detection
     
-    int8_t* diff_buf = motion_detector->apply();
+    bool has_motion = motion_detector->detect_motion();
     /*
     pos_pixel_count = bit_map_transfer((uint8_t*)diff_buf,kNumRows,kNumCols,
                                       tg_img,bitmap_threshold);
-    if (pos_pixel_count >= uint32_t(kNumCols*kNumRows*0.1)){
-      TF_LITE_REPORT_ERROR(error_reporter,"===>Detect Motion!!!\n");
-    }
     */
 
+    //TF_LITE_REPORT_ERROR(error_reporter,"===>pos_count %d \n",pos_pixel_count);
+    if (has_motion){
+      TF_LITE_REPORT_ERROR(error_reporter,"===>Detect Motion!!!\n");
+      // Run model on the input
+      TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_START(error_reporter)
+      if(kTfLiteOk != interpreter->Invoke()){
+        TF_LITE_REPORT_ERROR(error_reporter, "Invoke failed.");
+      }
+      TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_END(error_reporter, "Invoke")
+      TfLiteTensor* output = interpreter->output(0);
+      
+      // process interfernce result
+      int8_t person_score = output->data.uint8[kPersonIndex];
+      int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
+      RespondToDetection(error_reporter,person_score,no_person_score);
+    } 
+    
+    /*
+    if (pos_pixel_count >= (uint32_t)kNumRows*kNumCols*0.05){
+      if (has_motion) TF_LITE_REPORT_ERROR(error_reporter,"===>Detect Motion!!!\n");
+
+    }
+    */
     uint8_t header[2] = {0x55, 0xAA};
     uart_write_blocking(IMAGE_UART_ID, header, 2);
-    uart_write_blocking(IMAGE_UART_ID,(uint8_t*)diff_buf,kMaxImageSize);
+    uart_write_blocking(IMAGE_UART_ID,(uint8_t*)motion_detector->frame_diff_data,kMaxImageSize);
 
     //Run model on the input
     /*

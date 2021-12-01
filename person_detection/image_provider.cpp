@@ -5,6 +5,7 @@
 #include "tensorflow/lite/micro/micro_time.h"
 #include <climits>
 
+static bool camera_env_setup = true;
 
 #define TF_LITE_MICRO_EXECUTION_TIME_BEGIN      \
   int32_t start_ticks;                          \
@@ -34,8 +35,8 @@
 TfLiteStatus GetImage(tflite::ErrorReporter* error_reporter, int image_width,
                       int image_height, int channels, int8_t* image_data) {
   uint8_t header[2] = {0x55, 0xAA};
-  static bool first = true;
-  if (first) {
+  //static bool first = true;
+  if (camera_env_setup) {
     arducam.systemInit();
     if(arducam.busDetect()) {
       TF_LITE_REPORT_ERROR(error_reporter, "Bus detect failed.");
@@ -48,7 +49,8 @@ TfLiteStatus GetImage(tflite::ErrorReporter* error_reporter, int image_width,
     //arducam.cameraInit(JPEG);
     arducam.cameraInit(YUV);
     
-    first = false;
+    //first = false;
+    camera_env_setup = false;
   }
 
   TF_LITE_MICRO_EXECUTION_TIME_BEGIN
@@ -65,5 +67,22 @@ TfLiteStatus GetImage(tflite::ErrorReporter* error_reporter, int image_width,
 
 TfLiteStatus GetJPEGImageTransfer(tflite::ErrorReporter*error_reporter){
   //capture image in jpeg format and send from uart port
+  //static bool first = true;
+  if (camera_env_setup){
+    arducam.systemInit();
+    if (arducam.busDetect()){
+      TF_LITE_REPORT_ERROR(error_reporter, "Bus detect failed.");
+      return kTfLiteError;
+    }
+    if (arducam.cameraProbe()){
+      TF_LITE_REPORT_ERROR(error_reporter, "Camera probe failed.");
+      return kTfLiteError;
+    }
+    arducam.cameraInit(JPEG);
+    arducam.setJpegSize(res_160x120);
+    camera_env_setup = false;
+  }
+
+
   return kTfLiteOk;
 }
