@@ -1,5 +1,6 @@
-#include "main_function.h"
+//#include "main_function.h"
 
+#include "detect_config.h"
 #include "detection_responder.h"
 #include "image_provider.h"
 #include "model_settings.h"
@@ -14,7 +15,8 @@
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
 
-#include "arducam.h"
+//#include "arducam.h"
+
 #include "pico/stdlib.h"
 #include "hardware/irq.h"
 
@@ -110,7 +112,7 @@ void setup_uart(){
     int UART_IRQ = IMAGE_UART_ID == uart0 ? UART0_IRQ:UART1_IRQ;
 
     // set up and enable the interrupt handlers
-    irq_set_exclusive_handler(UART1_IRQ, on_uart_rx);
+    irq_set_exclusive_handler(UART_IRQ, on_uart_rx);
     irq_set_enabled(UART_IRQ,true);
 
     // enable the uart to send interrputs - RX only

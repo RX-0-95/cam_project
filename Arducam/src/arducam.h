@@ -1,9 +1,11 @@
 #ifndef __ARDUCAM_H
 #define __ARDUCAM_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif//__cplusplus
 
 /*spi pin source*/
 #define SPI_PORT spi0
@@ -36,7 +38,7 @@ extern "C" {
 
 #ifdef USE_CAM_JPEG
     #define MAX_JPEG_BUF_SIZE 1024
-    extern int8_t jpeg_buf[MAX_JPEG_BUF_SIZE];
+    static int8_t jpeg_buf[MAX_JPEG_BUF_SIZE];
 #endif //USE_CAM_JPEG
 
 
@@ -109,7 +111,7 @@ void capture(uint8_t *data);
 
 //========================Modify start========================
 void yuv_capture(uint8_t *data);
-void jpeg_capture_transfer(uint8_t *data,void(*transfer_fn)(uint8_t*,uint32_t));
+void jpeg_capture_transfer(void(*transfer_fn)(uint8_t*,uint32_t));
 
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
 
-add_executable(person_detection "")
+add_executable(person_detection)
 target_include_directories(person_detection
   PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/.
@@ -18,8 +18,8 @@ target_sources(person_detection
   ${CMAKE_CURRENT_LIST_DIR}/main.cpp
   ${CMAKE_CURRENT_LIST_DIR}/image_provider.h
   ${CMAKE_CURRENT_LIST_DIR}/image_provider.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/main_function.h
-  ${CMAKE_CURRENT_LIST_DIR}/main_function.cpp
+  #${CMAKE_CURRENT_LIST_DIR}/main_function.h
+  #${CMAKE_CURRENT_LIST_DIR}/main_function.cpp
   ${CMAKE_CURRENT_LIST_DIR}/model_settings.h
   ${CMAKE_CURRENT_LIST_DIR}/model_settings.cpp
   ${CMAKE_CURRENT_LIST_DIR}/detection_responder.h
@@ -31,6 +31,12 @@ target_sources(person_detection
   ${CMAKE_CURRENT_LIST_DIR}/motion_detection.cpp
   ${CMAKE_CURRENT_LIST_DIR}/tiny_cv.h
   ${CMAKE_CURRENT_LIST_DIR}/tiny_cv.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/task_person_detection.h
+  ${CMAKE_CURRENT_LIST_DIR}/task_person_detection.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/task_pretask.h
+  ${CMAKE_CURRENT_LIST_DIR}/task_pretask.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/task_capture_transfer.h
+  ${CMAKE_CURRENT_LIST_DIR}/task_capture_transfer.cpp
 )
 
 pico_add_extra_outputs(person_detection)

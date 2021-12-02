@@ -11,7 +11,7 @@
 //=================cam jpeg support============
 #ifdef USE_CAM_JPEG
     int8_t* pic_buf;
-    int8_t jpeg_buf[MAX_JPEG_BUF_SIZE];
+    //int8_t jpeg_buf[MAX_JPEG_BUF_SIZE];
     uint32_t jpeg_send_len = 0;
     uint32_t jpeg_len = 0;
 #endif // USE_CAM_JPEG
@@ -263,7 +263,7 @@ void yuv_capture(uint8_t *imageDat){
     }
 }
 #ifdef USE_CAM_JPEG
-void jpeg_capture_transfer(uint8_t *imgDat, void (*transfer_fn)(uint8_t*,uint32_t)){
+void jpeg_capture_transfer(void (*transfer_fn)(uint8_t*,uint32_t)){
     //wait until the camera to fill the buffer
     //TODO: use rots here (level middle)
     while(!get_bit(ARDUCHIP_TRIG,CAP_DONE_MASK));
@@ -279,8 +279,12 @@ void jpeg_capture_transfer(uint8_t *imgDat, void (*transfer_fn)(uint8_t*,uint32_
         spi_read_blocking(SPI_PORT,BURST_FIFO_READ,(uint8_t*)pic_buf,jpeg_send_len);
         jpeg_len -= jpeg_send_len;
         //send via uart
-        transfer_fn((uint8_t*)pic_buf,jpeg_send_len);
+        
+        //transfer_fn((uint8_t*)pic_buf,jpeg_send_len);
     }
+    cs_deselect();
+    flush_fifo();
+    start_capture();
 }
 #endif
 

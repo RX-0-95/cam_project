@@ -2,6 +2,10 @@
 #define _DETECT_CONFIG_H_
 
 #include "hardware/uart.h" 
+#include "pico/stdlib.h"
+#include "arducam.h"
+
+
 //allow image trasnfer after capture
 #define SEND_IMAGE_AFTER_CAPTURE
 
@@ -21,5 +25,8 @@
 // motion detect conifg
 #define BITMAP_THRESHOLD 32
 #define DETECT_PERCENT_THRESHOLD 0.05
+
+//JPEG capeture trasnsfer
+#define CAPTURE_FRAME_RATE 4
 
 #endif

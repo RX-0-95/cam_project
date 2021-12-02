@@ -16,7 +16,6 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MICRO_ERROR_REPORTER_H_
 
 #include <cstdarg>
-
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/compatibility.h"
 
