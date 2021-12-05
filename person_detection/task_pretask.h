@@ -2,7 +2,7 @@
 #define _TASK_PRETASK_H_
 
 #include "detect_config.h"
-#include "FreeRtos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "pico/stdlib.h"
 #include "hardware/irq.h"
@@ -17,6 +17,7 @@
 #include "detection_responder.h"
 #include "image_provider.h"
 #include "model_settings.h"
+#include "motion_detection.h"
 #include "person_detection_model_data.h"
 #include <climits>
 
@@ -74,8 +75,18 @@ extern "C" {
 
 //error reporter for entire program
 namespace pretask{
+  //setup model related
+
   static tflite::MicroErrorReporter task_error_reporter; 
+  static tflite::ErrorReporter* error_reporter = &task_error_reporter;   
+  static tflite::MicroInterpreter* interpreter = nullptr;
+  static TfLiteTensor* input = nullptr; 
+  static const tflite::Model * model = nullptr;
+  static constexpr int kTensorArenaSize = 136*1024;
+  static uint8_t tensor_arena[kTensorArenaSize];
+
   void pretask_setup();
+  
 }
 
 /*

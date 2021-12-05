@@ -31,12 +31,14 @@ target_sources(person_detection
   ${CMAKE_CURRENT_LIST_DIR}/motion_detection.cpp
   ${CMAKE_CURRENT_LIST_DIR}/tiny_cv.h
   ${CMAKE_CURRENT_LIST_DIR}/tiny_cv.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/task_person_detection.h
-  ${CMAKE_CURRENT_LIST_DIR}/task_person_detection.cpp
+  #${CMAKE_CURRENT_LIST_DIR}/task_person_detection.h
+  #${CMAKE_CURRENT_LIST_DIR}/task_person_detection.cpp
   ${CMAKE_CURRENT_LIST_DIR}/task_pretask.h
   ${CMAKE_CURRENT_LIST_DIR}/task_pretask.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/task_capture_transfer.h
-  ${CMAKE_CURRENT_LIST_DIR}/task_capture_transfer.cpp
+  #${CMAKE_CURRENT_LIST_DIR}/task_capture_transfer.h
+  #${CMAKE_CURRENT_LIST_DIR}/task_capture_transfer.cpp
+  #${CMAKE_CURRENT_LIST_DIR}/task_capture.h
+  #${CMAKE_CURRENT_LIST_DIR}/task_capture.cpp
 )
 
 pico_add_extra_outputs(person_detection)

@@ -211,12 +211,15 @@ void ov2640Init(uint8_t format) {
     case YUV: {
         wrSensorReg8_8(0xff, 0x01);
         wrSensorReg8_8(0x12, 0x80);
+        //wrSensorReg8_8(0xff, 0x01);
+        //wrSensorReg8_8(0x15, 0x00);
         sleep_ms(100);
+        //wrSensorRegs8_8(OV2640_JPEG_INIT);
+        //wrSensorRegs8_8(OV2640_YUV422);
         wrSensorRegs8_8(OV2640_YUV_96x96);
         break;
     }
     }
-
     //Flush the FIFO
     flush_fifo();
     //Start capture
@@ -229,7 +232,7 @@ void capture(uint8_t *imageDat) {
     uint16_t index = 0;
     while (!get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK));
     int length = read_fifo_length();
-    // printf("the data length: %d\r\n",length);
+    //printf("the data length: %d\r\n",length);
     cs_select();
     set_fifo_burst(); //Set fifo burst mode
     spi_read_blocking(SPI_PORT, BURST_FIFO_READ, value, length);
@@ -243,13 +246,14 @@ void capture(uint8_t *imageDat) {
     }
 }
 
-void yuv_capture(uint8_t *imageDat){
+#ifdef USE_CAM_YUV
+uint8_t* yuv_capture(uint8_t *imageDat){
     uint16_t i, count;
     uint8_t value[96 * 96 * 2 + 8];
     uint16_t index = 0;
     while (!get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK));
     int length = read_fifo_length();
-    // printf("the data length: %d\r\n",length);
+    //printf("the data length: %d\r\n",length);
     cs_select();
     set_fifo_burst(); //Set fifo burst mode
     spi_read_blocking(SPI_PORT, BURST_FIFO_READ, value, length);
@@ -258,10 +262,18 @@ void yuv_capture(uint8_t *imageDat){
     flush_fifo();
     //Start capture
     start_capture();
-    for (i = 0; i < length - 8; i += 2) {
+    for (i = 0; i < length - 8; i += 1) {
         imageDat[index++] = value[i];
     }
+    return yuv_buf;
 }
+#else//USE_CAM_YUV
+uint8_t* void yuv_capture(){
+    assert (false && "USE_CAME_YUV is not defined,can't use yuv_capture function\n");
+    return yuv_buf;
+}
+#endif//USE_CAM_YUV
+
 #ifdef USE_CAM_JPEG
 void jpeg_capture_transfer(void (*transfer_fn)(uint8_t*,uint32_t)){
     //wait until the camera to fill the buffer
@@ -279,8 +291,7 @@ void jpeg_capture_transfer(void (*transfer_fn)(uint8_t*,uint32_t)){
         spi_read_blocking(SPI_PORT,BURST_FIFO_READ,(uint8_t*)pic_buf,jpeg_send_len);
         jpeg_len -= jpeg_send_len;
         //send via uart
-        
-        //transfer_fn((uint8_t*)pic_buf,jpeg_send_len);
+        transfer_fn((uint8_t*)pic_buf,jpeg_send_len);
     }
     cs_deselect();
     flush_fifo();

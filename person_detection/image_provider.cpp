@@ -45,14 +45,12 @@ TfLiteStatus GetImage(tflite::ErrorReporter* error_reporter, int image_width,
     if(arducam.cameraProbe()) {
       TF_LITE_REPORT_ERROR(error_reporter, "Camera probe failed.");
       return kTfLiteError;
-    }
-    //arducam.cameraInit(JPEG);
-    arducam.cameraInit(YUV);
-    
+    }  
     //first = false;
     camera_env_setup = false;
-  }
-
+    arducam.cameraInit(YUV);
+    
+  }  
   TF_LITE_MICRO_EXECUTION_TIME_BEGIN
   TF_LITE_MICRO_EXECUTION_TIME(error_reporter, capture((uint8_t *)image_data));
 #ifdef SEND_IMAGE_AFTER_CAPTURE
@@ -84,7 +82,38 @@ TfLiteStatus GetJPEGImageTransfer(tflite::ErrorReporter*error_reporter){
   }
   TF_LITE_MICRO_EXECUTION_TIME_BEGIN
   TF_LITE_MICRO_EXECUTION_TIME(error_reporter, jpeg_capture_transfer(uart_transfer));
+  return kTfLiteOk;
+}
 
+TfLiteStatus GetYUVImage(tflite::ErrorReporter* error_reporter,uint8_t* imageDat) {
+  uint8_t header[2] = {0x55, 0xAF};
+  //static bool first = true;
+  if (camera_env_setup) {
+    arducam.systemInit();
+    if(arducam.busDetect()) {
+      TF_LITE_REPORT_ERROR(error_reporter, "Bus detect failed.");
+      return kTfLiteError;
+    }
+    if(arducam.cameraProbe()) {
+      TF_LITE_REPORT_ERROR(error_reporter, "Camera probe failed.");
+      return kTfLiteError;
+    }  
+    //first = false;
+    camera_env_setup = false;
+    arducam.cameraInit(YUV);
+    TF_LITE_REPORT_ERROR(error_reporter, "Camera set to YUV mode\n.");
+  }  
+  TF_LITE_MICRO_EXECUTION_TIME_BEGIN
+  TF_LITE_MICRO_EXECUTION_TIME(error_reporter, yuv_capture(imageDat));
+#ifdef SEND_IMAGE_AFTER_CAPTURE
+  TF_LITE_MICRO_EXECUTION_TIME(error_reporter, uart_write_blocking(IMAGE_UART_ID, header, 2));
+  TF_LITE_MICRO_EXECUTION_TIME(error_reporter, uart_write_blocking(IMAGE_UART_ID, imageDat,96*96*2));
+#endif
+  /*
+  for (int i = 0; i < image_width * image_height * channels; ++i) {
+    image_data[i] = (uint8_t)image_data[i] - 128;
+  }
+  */
   return kTfLiteOk;
 }
 

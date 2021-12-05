@@ -39,7 +39,19 @@ extern "C" {
 #ifdef USE_CAM_JPEG
     #define MAX_JPEG_BUF_SIZE 1024
     static int8_t jpeg_buf[MAX_JPEG_BUF_SIZE];
+#else
+    static int8_t jpeg_buf[1];
 #endif //USE_CAM_JPEG
+
+#define YUV_WIDTH 96
+#define YUV_HIGH 96
+
+
+#ifdef USE_CAM_YUV
+    #define YUV_96_DATA_SIZE 96*96*2
+    #define YUV_96_BUF_SIZE 96*96*2+8
+    static uint8_t yuv_buf[YUV_96_BUF_SIZE];
+#endif
 
 
 #ifndef _SENSOR_
@@ -110,9 +122,8 @@ uint8_t read_reg(uint8_t address);
 void capture(uint8_t *data);
 
 //========================Modify start========================
-void yuv_capture(uint8_t *data);
 void jpeg_capture_transfer(void(*transfer_fn)(uint8_t*,uint32_t));
-
+uint8_t* yuv_capture(uint8_t* imageData);
 
 #ifdef __cplusplus
 }

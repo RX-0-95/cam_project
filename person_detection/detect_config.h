@@ -12,6 +12,8 @@
 //allow image transfer after inference
 //#define SEND_IMAGE_AFTER_INFERENCE
 
+#define SEND_JPEG_IMAGE
+
 // define uart settings 
 #define IMAGE_UART_ID uart1
 #define IMAGE_TX_PIN 20

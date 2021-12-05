@@ -11,6 +11,8 @@ TfLiteStatus GetImage(tflite::ErrorReporter* error_reporter, int image_width,
 
 TfLiteStatus GetJPEGImageTransfer(tflite::ErrorReporter*error_reporter);
 
+TfLiteStatus GetYUVImage(tflite::ErrorReporter*error_reporter,uint8_t* imageDat);
+
 static inline void uart_transfer(uint8_t* usart_buffer,uint32_t buffer_length){
     return uart_write_blocking(IMAGE_UART_ID,usart_buffer,buffer_length);
 }

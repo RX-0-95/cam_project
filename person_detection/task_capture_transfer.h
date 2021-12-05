@@ -42,7 +42,7 @@ capture_transfer_task(void* args)
             TF_LITE_REPORT_ERROR(error_repoter,"JPEG caputer failed\n");
         }
         TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_END(error_repoter,"JPEG capature and transfer\n");
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 

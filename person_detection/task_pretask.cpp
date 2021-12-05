@@ -1,9 +1,16 @@
 #include "task_pretask.h"
+#include "detect_config.h"
+#include "model_settings.h"
+#include "person_detection_model_data.h"
 
+#include "image_provider.h"
+#include "motion_detection.h"
+#include "detection_responder.h"
+#include "tiny_cv.h"
 
 namespace pretask
 {
-#if defined (SEND_IMAGE_AFTER_CAPTURE)||defined (SEND_IMAGE_AFTER_INFERENCE)
+#if defined (SEND_IMAGE_AFTER_CAPTURE)||defined (SEND_IMAGE_AFTER_INFERENCE)||defined (SEND_JPEG_IMAGE)
 //RX interrputer 
 void on_uart_rx() {
     uint8_t cameraCommand = 0;
@@ -43,8 +50,44 @@ void setup_uart(){
 void setup_uart() {}
 #endif// defined (SEND_IMAGE_AFTER_CAPTURE)||defined (SEND_IMAGE_AFTER_INFERENCE)
 
+void setup_model(){
+    pretask::model = tflite::GetModel(g_person_detect_model_data);
+    if (pretask::model->version() != TFLITE_SCHEMA_VERSION){
+        TF_LITE_REPORT_ERROR(pretask::error_reporter,
+                            "Model provider is schema version %d not equal"
+                            "to spport version %d.",
+                            pretask::model->version(),TFLITE_SCHEMA_VERSION);
+        return;
+    }
+    // pull in only the operation implementations we need
+    
+    static tflite::MicroMutableOpResolver<5> micro_op_resolver;
+    micro_op_resolver.AddAveragePool2D();
+    micro_op_resolver.AddConv2D();
+    micro_op_resolver.AddDepthwiseConv2D();
+    micro_op_resolver.AddReshape();
+    micro_op_resolver.AddSoftmax();
+    
+    //Build interrpter to run the model with
+    
+    static tflite::MicroInterpreter static_interpreter(model,micro_op_resolver,tensor_arena,kTensorArenaSize,error_reporter);
+    pretask::interpreter = &static_interpreter;
+    
+    // allocate memory from the tensor_arena for the model's tensor
+    
+    TfLiteStatus allocate_status = pretask::interpreter->AllocateTensors();
+    if (allocate_status != kTfLiteOk) {
+        TF_LITE_REPORT_ERROR(pretask::error_reporter, "AllocateTensors() failed");
+        return;
+    }
+    pretask::input = pretask::interpreter->input(0);
+    TF_LITE_REPORT_ERROR(pretask::error_reporter,"Person detection setup clear!!!");       
+    
+}
+
 void pretask_setup(){
   setup_uart();
+  setup_model();
 }
     
 } // namespace pretask
