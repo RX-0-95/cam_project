@@ -41,7 +41,7 @@ namespace{
     MotionDetector * motion_detector = nullptr;
     static int8_t prev_frame_data[kNumRows*kNumCols];
     static int8_t frame_diff_data[kNumRows*kNumCols];
-    //static int8_t current_frame_data[kNumRows*kNumCols];
+    static int8_t current_frame_data[kNumRows*kNumCols];
     //TinyCv related
    // static TinyImage* tg_img = nullptr;
     static uint32_t pos_pixel_count = 0;
@@ -77,10 +77,17 @@ void setup_model(){
 }
 
 void setup_capture(){
+    /*
     static MotionDetector motion_detecto(input->data.int8,kNumRows,kNumCols,
                         prev_frame_data,frame_diff_data,BITMAP_THRESHOLD,
                         DETECT_PERCENT_THRESHOLD);
     motion_detector = &motion_detecto;
+    */
+    static MotionDetector motion_detecto(current_frame_data,kNumRows,kNumCols,
+                        prev_frame_data,frame_diff_data,BITMAP_THRESHOLD,
+                        DETECT_PERCENT_THRESHOLD);
+    motion_detector = &motion_detecto;
+   
 }
 
 
@@ -184,7 +191,7 @@ void person_detection(void *args __attribute__((unused))){
         int8_t person_score = output->data.uint8[kPersonIndex];
         int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
         RespondToDetection(error_reporter,person_score,no_person_score);
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
@@ -200,15 +207,17 @@ void image_capture(void *args __attribute__((unused))){
         uint index = 0;
         int8_t* grey_image_data = input->data.int8;
         
+        /*
         for (i=0;i<captured_image_size;i+=2){
             grey_image_data[index++] = captured_image[i]-128;
         }
+        */
         
-        /*
         for (i=0;i<captured_image_size;i+=2){
             current_frame_data[index++] = captured_image[i]-128;
         }
-        */
+        
+        
         //motion detection
         
         bool has_motion = motion_detector->detect_motion();
@@ -218,7 +227,7 @@ void image_capture(void *args __attribute__((unused))){
             //move the data to person detect scope
             if (person_detection_done){
                 person_detection_done = false;
-                //memcpy(input->data.int8,current_frame_data,sizeof(int8_t)*kNumRows*kNumCols);
+                memcpy(input->data.int8,current_frame_data,sizeof(int8_t)*kNumRows*kNumCols);
                 TF_LITE_REPORT_ERROR(error_reporter,"===>Update person detect input!!!\n");
             }else{
                 TF_LITE_REPORT_ERROR(error_reporter,"===>Person detect busy, not update!!!\n");
@@ -227,7 +236,7 @@ void image_capture(void *args __attribute__((unused))){
             is_motion = false;
         }
         capture_done = true;
-        vTaskDelay(pdMS_TO_TICKS(250));
+        vTaskDelay(pdMS_TO_TICKS(300));
     }
 }
 
@@ -270,8 +279,6 @@ int main(int argc, char* argv[]){
         printf("Create person detection task\n");
 
     }
-
-    
     /*
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN,GPIO_OUT);
@@ -288,9 +295,7 @@ int main(int argc, char* argv[]){
         printf("Create green LED task\n");
     }
     */
-    
-    
-    
+        
     TaskHandle_t g_ct = NULL;
     uint32_t ct_status = xTaskCreate(image_capture,
                                     "Capture Transfer",
@@ -336,29 +341,6 @@ int main(int argc, char* argv[]){
    for(;;){
     
    }
-   
-    
-    
 
-    //pretask_setup(NULL);
-
-
-    /*
-    gpio_init(PICO_DEFAULT_LED_PIN);
-    gpio_set_dir(PICO_DEFAULT_LED_PIN,GPIO_OUT);
-    TaskHandle_t gLEDtask = NULL;
-    uint32_t status = xTaskCreate(GreenLEDTask,
-                            "Green LED",
-                            1024,
-                            NULL,
-                            tskIDLE_PRIORITY,
-                            &gLEDtask);
-    vTaskStartScheduler();
-    
-
-    while (true){
-        loop();
-    }
-    */
    return 95;
 }
