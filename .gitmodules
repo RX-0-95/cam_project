@@ -1,0 +1,4 @@
+[submodule "arducam_pyhost"]
+	path = arducam_pyhost
+	url = https://github.com/RX-0-95/arducam_pyhost.git
+	branch = master
