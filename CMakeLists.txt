@@ -378,34 +378,34 @@ target_sources(free_rtos
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(cam_project cam_project.cpp )
+#add_executable(cam_project cam_project.cpp )
 
-pico_set_program_name(cam_project "cam_project")
-pico_set_program_version(cam_project "0.1")
+#pico_set_program_name(cam_project "cam_project")
+#pico_set_program_version(cam_project "0.1")
 
-pico_enable_stdio_uart(cam_project 1)
-pico_enable_stdio_usb(cam_project 0)
+#pico_enable_stdio_uart(cam_project 1)
+#pico_enable_stdio_usb(cam_project 0)
 
 # Add the standard library to the build
-target_link_libraries(cam_project 
-        pico_stdlib 
-        arducam 
-        pico-tflmicro
-        free_rtos)
+#target_link_libraries(cam_project 
+#        pico_stdlib 
+#        arducam 
+#        pico-tflmicro
+#       free_rtos)
 
 # Add any user requested libraries
-target_link_libraries(cam_project
-        hardware_spi
-        hardware_i2c
-        hardware_dma
-        hardware_pio
-        hardware_interp
-        hardware_timer
-        hardware_watchdog
-        hardware_clocks
-        )
+#target_link_libraries(cam_project
+#        hardware_spi
+#        hardware_i2c
+#        hardware_dma
+#       hardware_pio
+#        hardware_interp
+#        hardware_timer
+#        hardware_watchdog
+#        hardware_clocks
+#        )
 
-pico_add_extra_outputs(cam_project)
+#pico_add_extra_outputs(cam_project)
 
 # Add subdirectory
 add_subdirectory("Arducam/src")

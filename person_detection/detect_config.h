@@ -26,7 +26,7 @@
 
 // motion detect conifg
 #define BITMAP_THRESHOLD 32
-#define DETECT_PERCENT_THRESHOLD 0.05
+#define DETECT_PERCENT_THRESHOLD 0.01
 
 //JPEG capeture trasnsfer
 #define CAPTURE_FRAME_RATE 4

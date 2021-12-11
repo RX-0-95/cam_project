@@ -3,7 +3,9 @@
 
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
+#include "queue.h"
 #include "task.h"
+
 
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
@@ -13,6 +15,7 @@
 //tasks
 
 #include "task_pretask.h"
+#include "message_sender.h"
 //#include "task_person_detection.h"
 //#include "task_capture_transfer.h"
 //#include "task_capture.h"
@@ -30,6 +33,7 @@ namespace{
     static constexpr int kTensorArenaSize = 136*1024;
     static uint8_t tensor_arena[kTensorArenaSize];
     static bool person_detection_done = false; 
+    static bool is_person = false;
     
     //variable for image capture
     static const int captured_image_size = kNumCols*kNumRows*2;
@@ -46,6 +50,20 @@ namespace{
    // static TinyImage* tg_img = nullptr;
     static uint32_t pos_pixel_count = 0;
     static const uint8_t bitmap_threshold = 32;
+
+    //pritorty queue setup
+    static struct priority_level cam_priority{
+        .p1 = 0x10,
+        .p2 = 0x20,
+        .p3 = 0x30,
+        .p_len = 1
+    }; 
+    const uint8_t priority_meta_len = 2; 
+    static uint8_t priporty_header[priority_meta_len] = {0xaa,0xff};
+
+    //free rtos queue for intra-task communcatuion
+    static QueueHandle_t task_queue = xQueueCreate(8,sizeof(bool));
+    
 }
 
 void setup_model(){
@@ -148,57 +166,33 @@ void person_detection(void *args __attribute__((unused))){
     motion_detector = &motion_detecto;
     */
     for(;;){
-        /*
-        TF_LITE_MICRO_EXECUTION_TIME_BEGIN
-        TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_START(error_reporter);
-        // get image from provider
-        if (kTfLiteOk != GetImage(error_reporter,kNumCols,kNumRows,kNumChannels,
-            input->data.int8)){
-                TF_LITE_REPORT_ERROR(error_reporter,"Image capture failed");
-            }
-        TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_END(error_reporter,"GetImage");
-        */
-        // motion detection
-        //bool has_motion = motion_detector->detect_motion();
-        /*
-        if (has_motion){
-            TF_LITE_REPORT_ERROR(error_reporter,"===>Detect Motion!!!\n");
-            // Run model on the input
-            TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_START(error_reporter)
-            if(kTfLiteOk != interpreter->Invoke()){
-                TF_LITE_REPORT_ERROR(error_reporter, "Invoke failed.");
-            }
-            TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_END(error_reporter, "Invoke")
-            TfLiteTensor* output = interpreter->output(0);
-            
-            // process interfernce result
-            int8_t person_score = output->data.uint8[kPersonIndex];
-            int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
-            RespondToDetection(error_reporter,person_score,no_person_score);
-        }
-        */
-        TF_LITE_MICRO_EXECUTION_TIME_BEGIN
-        TF_LITE_REPORT_ERROR(error_reporter,"***>Start person detection\n");
-        TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_START(error_reporter)
+
         if (!person_detection_done){
+            TF_LITE_MICRO_EXECUTION_TIME_BEGIN
+            TF_LITE_REPORT_ERROR(error_reporter,"***>Start person detection\n");
+            TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_START(error_reporter)
             if(kTfLiteOk != interpreter->Invoke()){
                     TF_LITE_REPORT_ERROR(error_reporter, "Invoke failed.");
             }
             person_detection_done = true;
+            TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_END(error_reporter, "Invoke")
+            TfLiteTensor* output = interpreter->output(0);
+            int8_t person_score = output->data.uint8[kPersonIndex];
+            int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
+            //update is_person score
+            is_person = (person_score > 0)? true:false;
+            RespondToDetection(error_reporter,person_score,no_person_score);
         }
-        TF_LITE_MICRO_EXECUTION_TIME_SNIPPET_END(error_reporter, "Invoke")
-        TfLiteTensor* output = interpreter->output(0);
-        int8_t person_score = output->data.uint8[kPersonIndex];
-        int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
-        RespondToDetection(error_reporter,person_score,no_person_score);
+
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
-void image_capture(void *args __attribute__((unused))){
-    
+void image_capture(void *args __attribute__((unused))){    
     for (;;){
         capture_done = false;
+
+
         if (kTfLiteOk!=GetYUVImage(error_reporter,captured_image)){
             TF_LITE_REPORT_ERROR(error_reporter, "GetYUVImage() failed");
         }
@@ -219,10 +213,13 @@ void image_capture(void *args __attribute__((unused))){
         
         
         //motion detection
-        
         bool has_motion = motion_detector->detect_motion();
         if (has_motion){
             TF_LITE_REPORT_ERROR(error_reporter,"===>Detect Motion!!!\n");
+            // send priority queue
+            //uart_write_blocking(IMAGE_UART_ID,&cam_priority.p3,cam_priority.p_len);
+            uart_write_blocking(IMAGE_UART_ID,priporty_header,2);
+            uart_write_blocking(IMAGE_UART_ID,&cam_priority.p2,cam_priority.p_len); 
             is_motion = true;
             //move the data to person detect scope
             if (person_detection_done){
@@ -235,8 +232,16 @@ void image_capture(void *args __attribute__((unused))){
         }else{
             is_motion = false;
         }
+        
+        if (is_person){
+            TF_LITE_REPORT_ERROR(error_reporter,"===>Detect Person!!!\n");
+            uart_write_blocking(IMAGE_UART_ID,priporty_header,2);
+            uart_write_blocking(IMAGE_UART_ID,&cam_priority.p3,cam_priority.p_len); 
+            is_person = false;
+        }
+
         capture_done = true;
-        vTaskDelay(pdMS_TO_TICKS(300));
+        vTaskDelay(pdMS_TO_TICKS(150));
     }
 }
 
@@ -256,14 +261,7 @@ int main(int argc, char* argv[]){
     setup_capture();
     //pretask::pretask_setup();
     //setup();
-    
-    /*
-    for (;;){
-        //person_detection(NULL);
-        image_capture(NULL);
-    }
-    */
-    
+  
     TaskHandle_t g_pd = NULL;
   
     uint32_t pd_status = xTaskCreate(person_detection,
@@ -326,17 +324,7 @@ int main(int argc, char* argv[]){
         printf("Create capture transfer task\n");
     }
     */
-    
-    
-    
-    
     vTaskStartScheduler();
-    /*
-    setup();
-    for (;;){
-        loop();
-    }
-    */
    //should never go here
    for(;;){
     

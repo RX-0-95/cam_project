@@ -80,12 +80,15 @@ TfLiteStatus GetJPEGImageTransfer(tflite::ErrorReporter*error_reporter){
     arducam.setJpegSize(res_160x120);
     camera_env_setup = false;
   }
+  //arducam.cameraInit(JPEG);
+  //arducam.setJpegSize(res_160x120);
   TF_LITE_MICRO_EXECUTION_TIME_BEGIN
   TF_LITE_MICRO_EXECUTION_TIME(error_reporter, jpeg_capture_transfer(uart_transfer));
   return kTfLiteOk;
 }
 
-TfLiteStatus GetYUVImage(tflite::ErrorReporter* error_reporter,uint8_t* imageDat) {
+TfLiteStatus 
+GetYUVImage(tflite::ErrorReporter* error_reporter,uint8_t* imageDat) {
   uint8_t header[2] = {0x55, 0xAF};
   //static bool first = true;
   if (camera_env_setup) {
@@ -100,9 +103,11 @@ TfLiteStatus GetYUVImage(tflite::ErrorReporter* error_reporter,uint8_t* imageDat
     }  
     //first = false;
     camera_env_setup = false;
-    arducam.cameraInit(YUV);
+    arducam.cameraInit(YUV);  
+
     TF_LITE_REPORT_ERROR(error_reporter, "Camera set to YUV mode\n.");
-  }  
+  }
+  //arducam.cameraInit(YUV);  
   TF_LITE_MICRO_EXECUTION_TIME_BEGIN
   TF_LITE_MICRO_EXECUTION_TIME(error_reporter, yuv_capture(imageDat));
 #ifdef SEND_IMAGE_AFTER_CAPTURE
