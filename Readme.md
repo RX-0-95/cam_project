@@ -2,6 +2,10 @@
 
 This repo is part of ECE202 project, this part of the smart camera module. Please see [ECE202Project](https://github.com/RX-0-95/ecem202a_project.git) for detail.
 
+## Clone all submodule recursively 
+
+                git clone --recurse-submodules https://github.com/RX-0-95/ecem202a_project.git
+
 ## Compile uf2 file for Raspberry Pi Pico
 
 1. Intall tool chain follow the instruction here [Pico intro](https://shawnhymel.com/2096/how-to-set-up-raspberry-pi-pico-c-c-toolchain-on-windows-with-vs-code/)
